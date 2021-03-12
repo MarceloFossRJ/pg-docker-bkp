@@ -64,18 +64,14 @@ function bkp_exec()
     echo -e "\n\n Starting the Backup"
     echo -e "--------------------------------------------\n"    
     # retrieve docker container id
-    QUERYCONTAINER=`docker ps -f name=postgres  --format '{{.Names}}'`
+    QUERYCONTAINER=`docker ps -f name=peppery_db  --format '{{.Names}}'`
     
     # Execute backup
     if [ "$QUERYCONTAINER" ]; then
         for DBCONTAINER in $QUERYCONTAINER;
         do
             echo "CHECK-IN $DBCONTAINER"
-            if ! docker exec $DBCONTAINER pg_dumpall -c -U "$USERNAME" | gzip > $FINAL_BACKUP_DIR$DBCONTAINER"/$FILENAME".sql.gz.in_progress; then
-                    echo "[!!ERROR!!] Failed to produce plain backup database $DATABASE" 1>&2
-            else
-                    mv $FINAL_BACKUP_DIR$DBCONTAINER"/$FILENAME".sql.gz.in_progress $FINAL_BACKUP_DIR$DBCONTAINER"/$FILENAME".sql.gz
-            fi
+            docker exec -t $DBCONTAINER pg_dumpall -c -U "$BACKUP_USER" | gzip > $FINAL_BACKUP_DIR"/$FILENAME".sql.gz;
         done
         echo -e "\nAll postgres databases backup have been completed successfully!"
     fi;
@@ -109,5 +105,7 @@ then
 fi
 
 # Daily backups
-find $BACKUP_DIR -maxdepth 1 -mtime +$DAYS_TO_KEEP -name "*-daily" -exec rm -rf '{}' ';'
+echo -e "\n\nPerforming Daily backup"
+echo -e "--------------------------------------------\n"
+#find $BACKUP_DIR -maxdepth 1 -mtime +$DAYS_TO_KEEP -name "*-daily" -exec rm -rf '{}' ';'
 bkp_exec "-daily"
