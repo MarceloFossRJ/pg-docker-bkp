@@ -4,8 +4,10 @@
 # PATH_TO/pg_backup_rotated.sh -c PATH_TO/config.ini
 
 # Schedule to cron on a daily basis:
+# run 
+# chmod +x pg-docker-kbp.sh
 # Execute $crontab -e and insert the line below
-# 00 00 * * 1 cd /opt/docker-compose; PATH_TO/pg_backup_rotated.sh -c PATH_TO/config.ini
+# 00 00 * * * PATH_TO/pg_backup_rotated.sh -c PATH_TO/config.ini
 
 # Restore the backup
 # gzip -d FILENAME.sql.gz
@@ -71,7 +73,7 @@ function bkp_exec()
         for DBCONTAINER in $QUERYCONTAINER;
         do
             echo "CHECK-IN $DBCONTAINER"
-            docker exec -t $DBCONTAINER pg_dumpall -c -U "$BACKUP_USER" | gzip > $FINAL_BACKUP_DIR"/$FILENAME".sql.gz;
+            docker exec -t $DBCONTAINER pg_dumpall -c -U "$BACKUP_USER" | gzip > $FINAL_BACKUP_DIR"/$FILENAME"_`date +%d-%m-%Y"_"%H_%M_%S`.sql.gz;
         done
         echo -e "\nAll postgres databases backup have been completed successfully!"
     fi;
@@ -107,5 +109,5 @@ fi
 # Daily backups
 echo -e "\n\nPerforming Daily backup"
 echo -e "--------------------------------------------\n"
-#find $BACKUP_DIR -maxdepth 1 -mtime +$DAYS_TO_KEEP -name "*-daily" -exec rm -rf '{}' ';'
+find $BACKUP_DIR -maxdepth 1 -mtime +$DAYS_TO_KEEP -name "*-daily" -exec rm -rf '{}' ';'
 bkp_exec "-daily"
