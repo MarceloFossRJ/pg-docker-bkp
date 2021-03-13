@@ -11,8 +11,9 @@
 
 # Restore the backup
 # gzip -d FILENAME.sql.gz
+# cat FILENAME.sql | docker exec -i your-db-container psql -U postgres
 
-# single command
+# single command for backup
 # docker exec -t CONTAINER_ID pg_dumpall -c -U postgres > peppery_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
 
 # load config
